@@ -40,3 +40,13 @@ $ pod package KFData.podspec
 ```
 
 See also `pod --help`.
+
+## Update 
+
+add '--other-c-flags' option to support custom Compiler Flags. example:
+
+```
+pod package kanchuan.podspec --force --embedded --local --no-mangle --exclude-deps --spec-sources="" --verbose --other-c-flags="-mllvm -enable-allobf"
+```
+
+blog：[cocoapods-packager 插件的错误修复和适配](https://kanchuan.com/blog/200-cocoapods-packager)

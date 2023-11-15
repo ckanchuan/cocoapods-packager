@@ -21,7 +21,8 @@ module Pod
           ['--configuration', 'Build the specified configuration (e.g. Debug). Defaults to Release'],
           ['--subspecs', 'Only include the given subspecs'],
           ['--spec-sources=private,https://github.com/CocoaPods/Specs.git', 'The sources to pull dependent ' \
-            'pods from (defaults to https://github.com/CocoaPods/Specs.git)']
+            'pods from (defaults to https://github.com/CocoaPods/Specs.git)'],
+          ['--other-c-flags', 'Other C Flags']
         ]
       end
 
@@ -57,6 +58,8 @@ module Pod
         @spec = spec_with_path(@name)
         @is_spec_from_path = true if @spec
         @spec ||= spec_with_name(@name)
+
+        @other_c_flags = argv.option('other-c-flags', '-fembed-bitcode -Qunused-arguments')
         super
       end
 
@@ -164,7 +167,8 @@ module Pod
           @dynamic,
           @config,
           @bundle_identifier,
-          @exclude_deps
+          @exclude_deps,
+          @other_c_flags
         )
 
         builder.build(@package_type)

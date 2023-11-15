@@ -1,6 +1,6 @@
 module Pod
   class Builder
-    def initialize(platform, static_installer, source_dir, static_sandbox_root, dynamic_sandbox_root, public_headers_root, spec, embedded, mangle, dynamic, config, bundle_identifier, exclude_deps)
+    def initialize(platform, static_installer, source_dir, static_sandbox_root, dynamic_sandbox_root, public_headers_root, spec, embedded, mangle, dynamic, config, bundle_identifier, exclude_deps, other_c_flags)
       @platform = platform
       @static_installer = static_installer
       @source_dir = source_dir
@@ -14,6 +14,7 @@ module Pod
       @config = config
       @bundle_identifier = bundle_identifier
       @exclude_deps = exclude_deps
+      @other_c_flags = other_c_flags
 
       @file_accessors = @static_installer.pod_targets.select { |t| t.pod_name == @spec.name }.flat_map(&:file_accessors)
     end
@@ -300,11 +301,13 @@ MAP
     end
 
     def ios_build_options
-      "ARCHS=\'#{ios_architectures.join(' ')}\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
+      #{}"ARCHS=\'#{ios_architectures.join(' ')}\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
+      "ARCHS=\'#{ios_architectures.join(' ')}\' OTHER_CFLAGS=\'#{@other_c_flags}\'"
     end
 
     def ios_architectures
-      archs = %w(x86_64 i386 arm64 armv7 armv7s)
+      #archs = %w(x86_64 i386 arm64 armv7 armv7s)
+      archs = %w(x86_64 arm64)
       vendored_libraries.each do |library|
         archs = `lipo -info #{library}`.split & archs
       end
@@ -318,9 +321,10 @@ MAP
 
       command = "xcodebuild #{defines} #{args} CONFIGURATION_BUILD_DIR=#{build_dir} clean build -configuration #{config} -target #{target} -project #{project_root}/Pods.xcodeproj 2>&1"
       output = `#{command}`.lines.to_a
+      puts UI::BuildFailedReport.report(command, output)
 
       if $?.exitstatus != 0
-        puts UI::BuildFailedReport.report(command, output)
+        #puts UI::BuildFailedReport.report(command, output)
 
         # Note: We use `Process.exit` here because it fires a `SystemExit`
         # exception, which gives the caller a chance to clean up before the
